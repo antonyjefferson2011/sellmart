@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Administrador = usuário autenticado cujo UID tem um documento em /admins/{uid}.
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function produtoValido(d) {
+      return d.keys().hasOnly(['nome','descricao','categoria','preco','urlCompra','imagem','publicado','criadoEm','atualizadoEm'])
+        && d.nome is string && d.nome.size() >= 2 && d.nome.size() <= 120
+        && d.descricao is string && d.descricao.size() >= 1 && d.descricao.size() <= 1000
+        && d.categoria in ['Beleza','Culinária','Renda Extra','Marketing','E-books']
+        && d.preco is number && d.preco >= 0
+        && d.urlCompra is string && d.urlCompra.matches('^https?://.+')
+        && d.imagem is string && (d.imagem == '' || d.imagem.matches('^https?://.+'))
+        && d.publicado is bool;
+    }
+
+    match /produtos/{id} {
+      // Visitantes leem SOMENTE produtos publicados; admins leem tudo.
+      allow read: if resource.data.publicado == true || isAdmin();
+      allow create, update: if isAdmin() && produtoValido(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // O usuário só consegue ler o PRÓPRIO documento (para o painel checar a permissão).
+    // Ninguém cria admins pelo site: isso é feito manualmente no Console do Firebase.
+    match /admins/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list, write: if false;
+    }
+  }
+}

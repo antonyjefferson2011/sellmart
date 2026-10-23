@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel — Sellmart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="sellmart.css">
+<style>
+.top{position:sticky;top:0;z-index:20;background:#0B0F1Aee;backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:66px}
+.top img{height:38px;display:block}
+.who{display:flex;align-items:center;gap:12px;color:var(--mut);font-size:14px}
+.who span{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+main{padding:28px 0 80px}
+.login{min-height:100vh;display:grid;place-items:center;padding:20px}
+.login .card{width:min(420px,100%);padding:32px 26px}
+.login img{height:52px;display:block;margin:0 auto 22px}
+.login h1{font-size:22px;text-align:center;margin-bottom:6px}
+.login .sub{text-align:center;color:var(--mut);margin-bottom:22px;font-size:14.5px}
+.f{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.f label{font-size:14px;font-weight:600}
+.f small{color:var(--mut);font-size:13px}
+.msg{padding:12px 14px;border-radius:12px;font-size:14px;margin-bottom:16px;background:#ef444422;color:#fca5a5;border:1px solid #ef444455}
+.head{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;margin-bottom:18px}
+.head h2{font-size:24px}
+.tools{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:18px}
+.row{display:grid;grid-template-columns:72px 1fr auto;gap:14px;align-items:center;padding:12px;margin-bottom:10px}
+.row .th{width:72px;height:54px;border-radius:10px;background:linear-gradient(135deg,#1b1250,#2d1b78);overflow:hidden}
+.row .th img{width:100%;height:100%;object-fit:cover;display:block}
+.row h3{font-size:16px;margin-bottom:2px}
+.row .meta{color:var(--mut);font-size:13.5px;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center}
+.badge{font-size:12px;font-weight:600;padding:2px 10px;border-radius:99px}
+.badge.on{background:#10b98126;color:var(--ok)}
+.badge.off{background:#9aa4bf26;color:var(--mut)}
+.acts{display:flex;gap:8px}
+.edit{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;align-items:start}
+fieldset{border:1px solid var(--line);border-radius:var(--r);padding:20px 18px 6px;margin-bottom:18px;background:var(--card)}
+legend{padding:0 8px;font:700 16px Sora,sans-serif;color:var(--pl)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.imgbox{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.imgprev{aspect-ratio:16/10;border-radius:12px;border:1px dashed var(--line);background:#0e1424;display:grid;place-items:center;color:var(--mut);overflow:hidden;font-size:14px}
+.imgprev img{width:100%;height:100%;object-fit:cover}
+.bar{height:8px;border-radius:9px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .15s}
+.sticky{position:sticky;top:84px}
+.sticky h3{margin-bottom:10px;font-size:15px;color:var(--mut)}
+.actions{display:flex;flex-wrap:wrap;gap:12px}
+dialog{border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--g);padding:24px;width:min(420px,calc(100% - 32px))}
+dialog::backdrop{background:#000a}
+dialog p{margin:8px 0 20px;color:var(--mut)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;pointer-events:none;padding:14px 20px;border-radius:12px;font-weight:600;font-size:15px;transition:.25s;z-index:60;max-width:calc(100% - 32px);text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#toast.ok{background:var(--ok);color:#04130d}
+#toast.er{background:var(--err);color:#fff}
+@media(max-width:860px){.edit{grid-template-columns:1fr}.sticky{position:static}.tools{grid-template-columns:1fr}}
+@media(max-width:560px){.two{grid-template-columns:1fr}.row{grid-template-columns:60px 1fr}.row .th{width:60px;height:46px}.acts{grid-column:1/-1}.acts .btn{flex:1}.who span{display:none}.actions .btn{flex:1}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<section id="login" class="login hidden">
+  <div class="card">
+    <img src="logo-sellmart.png" alt="Sellmart">
+    <h1>Painel administrativo</h1>
+    <p class="sub">Entre com a conta de administrador.</p>
+    <div id="lerr" class="msg hidden" role="alert"></div>
+    <form id="lform" novalidate>
+      <div class="f"><label for="em">E-mail</label><input id="em" type="email" autocomplete="username" required></div>
+      <div class="f"><label for="pw">Senha</label><input id="pw" type="password" autocomplete="current-password" required></div>
+      <button class="btn" style="width:100%" id="lbtn">Entrar</button>
+    </form>
+  </div>
+</section>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <header class="top"><div class="wrap">
+    <img src="logo-sellmart.png" alt="Sellmart">
+    <div class="who"><span id="usr"></span><a class="btn ghost sm" href="index.html" target="_blank" rel="noopener">Ver vitrine</a><button class="btn ghost sm" id="sair">Sair</button></div>
+  </div></header>
+
+  <main class="wrap">
+    <!-- LISTA -->
+    <section id="vlista">
+      <div class="head"><h2>Produtos</h2><button class="btn" id="novo">Novo produto</button></div>
+      <div class="tools">
+        <input id="fq" type="search" placeholder="Buscar por nome ou descrição" aria-label="Buscar">
+        <select id="fc" aria-label="Categoria"></select>
+        <select id="fs" aria-label="Status"><option value="">Todos os status</option><option value="1">Publicados</option><option value="0">Rascunhos</option></select>
+      </div>
+      <div id="lst"></div>
+    </section>
+
+    <!-- EDITOR -->
+    <section id="vedit" class="hidden">
+      <div class="head"><h2 id="etit">Novo produto</h2><button class="btn ghost" id="voltar" type="button">Voltar à lista</button></div>
+      <form id="form" class="edit" novalidate>
+        <div>
+          <div id="ferr" class="msg hidden" role="alert"></div>
+          <fieldset><legend>Informações</legend>
+            <div class="f"><label for="nome">Nome do produto</label><input id="nome" maxlength="120" required></div>
+            <div class="f"><label for="desc">Descrição curta</label><textarea id="desc" maxlength="1000" required></textarea><small>Até 1000 caracteres. Na vitrine aparecem as primeiras linhas.</small></div>
+            <div class="f"><label for="cat">Categoria</label><select id="cat" required></select></div>
+          </fieldset>
+          <fieldset><legend>Venda</legend>
+            <div class="two">
+              <div class="f"><label for="preco">Preço (R$)</label><input id="preco" type="number" min="0" step="0.01" inputmode="decimal" required><small>Use 0 para “Grátis”.</small></div>
+              <div class="f"><label for="url">Link de compra (checkout)</label><input id="url" type="url" inputmode="url" placeholder="https://" required></div>
+            </div>
+          </fieldset>
+          <fieldset><legend>Imagem de capa</legend>
+            <div class="imgbox">
+              <div class="imgprev" id="iprev">Nenhuma imagem selecionada</div>
+              <div class="bar hidden" id="ibar"><i id="ifill"></i></div>
+              <small id="itxt" style="color:var(--mut)"></small>
+              <input id="file" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="hidden">
+              <div class="actions">
+                <button type="button" class="btn ghost" id="pick">Escolher imagem</button>
+                <button type="button" class="btn ghost hidden" id="rm">Remover imagem</button>
+              </div>
+            </div>
+          </fieldset>
+          <fieldset><legend>Publicação</legend>
+            <div class="f"><label for="pub">Situação</label>
+              <select id="pub"><option value="0">Rascunho (não aparece na vitrine)</option><option value="1">Publicado (visível na vitrine)</option></select></div>
+          </fieldset>
+          <div class="actions">
+            <button class="btn" id="salvar">Salvar produto</button>
+            <button class="btn ghost" type="button" id="cancel">Cancelar</button>
+          </div>
+        </div>
+        <aside class="sticky"><h3>Pré-visualização</h3><div id="prev"></div></aside>
+      </form>
+    </section>
+  </main>
+</div>
+
+<dialog id="dlg">
+  <h3>Excluir produto?</h3>
+  <p id="dtxt"></p>
+  <div class="actions"><button class="btn danger" id="dok">Excluir</button><button class="btn ghost" id="dno">Cancelar</button></div>
+</dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script type="module">
+import { firebaseConfig, imgbbApiKey, CATEGORIAS, configurado } from "./config.js";
+import { h, brl, safeUrl, norm, productCard } from "./util.js";
+
+const $ = (id) => document.getElementById(id);
+const show = (id, on = true) => $(id).classList.toggle("hidden", !on);
+const MAX_MB = 32; // limite do ImgBB
+
+/* ---------- avisos ---------- */
+let tt;
+function toast(msg, tipo = "ok") {
+  const t = $("toast");
+  t.textContent = msg; t.className = "show " + tipo;
+  clearTimeout(tt); tt = setTimeout(() => (t.className = ""), 3600);
+}
+function erro(id, msg) { const e = $(id); e.textContent = msg || ""; e.classList.toggle("hidden", !msg); }
+
+/* ---------- selects ---------- */
+$("cat").replaceChildren(h("option", { value: "" }, "Selecione…"), ...CATEGORIAS.map((c) => h("option", { value: c }, c)));
+$("fc").replaceChildren(h("option", { value: "" }, "Todas as categorias"), ...CATEGORIAS.map((c) => h("option", { value: c }, c)));
+
+if (!configurado()) {
+  show("login");
+  erro("lerr", "Painel não configurado. Preencha a seção CONFIGURAÇÃO FIREBASE no arquivo config.js.");
+  $("lbtn").disabled = true;
+  throw new Error("Firebase não configurado");
+}
+
+/* ---------- Firebase ---------- */
+const V = "https://www.gstatic.com/firebasejs/10.12.2/";
+const [{ initializeApp }, A, F] = await Promise.all([
+  import(V + "firebase-app.js"), import(V + "firebase-auth.js"), import(V + "firebase-firestore.js"),
+]);
+const { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } = A;
+const { getFirestore, collection, doc, getDoc, addDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, query } = F;
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app), db = getFirestore(app);
+
+let produtos = [], unsub = null, editId = null, imagem = "", enviando = false;
+
+/* ---------- login ---------- */
+const MSG = {
+  "auth/invalid-credential": "E-mail ou senha incorretos.",
+  "auth/invalid-email": "E-mail inválido.",
+  "auth/too-many-requests": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
+  "auth/network-request-failed": "Sem conexão com a internet.",
+  "auth/user-disabled": "Esta conta foi desativada.",
+};
+$("lform").addEventListener("submit", async (e) => {
+  e.preventDefault(); erro("lerr");
+  const em = $("em").value.trim(), pw = $("pw").value;
+  if (!em || !pw) return erro("lerr", "Informe e-mail e senha.");
+  $("lbtn").disabled = true; $("lbtn").textContent = "Entrando…";
+  try { await signInWithEmailAndPassword(auth, em, pw); }
+  catch (er) { erro("lerr", MSG[er.code] || "Não foi possível entrar. Tente novamente."); }
+  $("lbtn").disabled = false; $("lbtn").textContent = "Entrar";
+});
+$("sair").addEventListener("click", () => signOut(auth));
+
+onAuthStateChanged(auth, async (u) => {
+  if (unsub) { unsub(); unsub = null; }
+  if (!u) { show("app", false); show("login"); $("pw").value = ""; return; }
+  try {
+    // Autorização: precisa existir o documento admins/{uid}. As regras do Firestore repetem essa checagem no servidor.
+    const ok = (await getDoc(doc(db, "admins", u.uid))).exists();
+    if (!ok) { await signOut(auth); return erro("lerr", "Esta conta não tem permissão de administrador."); }
+  } catch (er) {
+    await signOut(auth);
+    return erro("lerr", "Não foi possível verificar a permissão. Confira a conexão e as regras do Firestore.");
+  }
+  show("login", false); show("app"); $("usr").textContent = u.email; irLista();
+  unsub = onSnapshot(query(collection(db, "produtos")), (s) => {
+    produtos = s.docs.map((d) => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (b.criadoEm?.seconds || 0) - (a.criadoEm?.seconds || 0));
+    lista();
+  }, (er) => { console.error(er); $("lst").replaceChildren(h("div", { class: "state err" }, h("h3", {}, "Erro ao carregar produtos"), h("p", {}, "Verifique a conexão e as regras do Firestore."))); });
+});
+
+/* ---------- lista ---------- */
+function irLista() { show("vedit", false); show("vlista"); window.scrollTo(0, 0); }
+function lista() {
+  const q = norm($("fq").value), c = $("fc").value, s = $("fs").value;
+  const l = produtos.filter((p) => (!c || p.categoria === c) && (!s || String(+!!p.publicado) === s) &&
+    (!q || norm(p.nome + " " + p.descricao).includes(q)));
+  if (!l.length) {
+    $("lst").replaceChildren(h("div", { class: "state" }, h("h3", {}, produtos.length ? "Nenhum resultado" : "Nenhum produto ainda"),
+      h("p", {}, produtos.length ? "Ajuste a busca ou os filtros." : "Clique em “Novo produto” para cadastrar o primeiro.")));
+    return;
+  }
+  $("lst").replaceChildren(...l.map((p) => {
+    const th = h("div", { class: "th" }), im = safeUrl(p.imagem);
+    if (im) { const i = h("img", { src: im, alt: "", loading: "lazy" }); i.onerror = () => i.remove(); th.append(i); }
+    return h("div", { class: "card row" }, th,
+      h("div", {}, h("h3", {}, p.nome || "Sem nome"),
+        h("div", { class: "meta" }, h("span", {}, p.categoria || "—"), h("span", {}, brl(p.preco)),
+          h("span", { class: "badge " + (p.publicado ? "on" : "off") }, p.publicado ? "Publicado" : "Rascunho"))),
+      h("div", { class: "acts" },
+        h("button", { class: "btn ghost sm", onclick: () => abrir(p) }, "Editar"),
+        h("button", { class: "btn ghost sm", style: "color:var(--err)", onclick: () => excluir(p) }, "Excluir")));
+  }));
+}
+["fq", "fc", "fs"].forEach((id) => $(id).addEventListener("input", lista));
+$("novo").addEventListener("click", () => abrir(null));
+
+/* ---------- editor ---------- */
+function abrir(p) {
+  editId = p ? p.id : null; erro("ferr");
+  $("etit").textContent = p ? "Editar produto" : "Novo produto";
+  $("nome").value = p?.nome || ""; $("desc").value = p?.descricao || ""; $("cat").value = p?.categoria || "";
+  $("preco").value = p ? p.preco : ""; $("url").value = p?.urlCompra || ""; $("pub").value = p?.publicado ? "1" : "0";
+  setImg(p?.imagem || ""); $("itxt").textContent = "";
+  show("vlista", false); show("vedit"); window.scrollTo(0, 0); preview();
+}
+["voltar", "cancel"].forEach((id) => $(id).addEventListener("click", irLista));
+function dados() {
+  return { nome: $("nome").value.trim(), descricao: $("desc").value.trim(), categoria: $("cat").value,
+    preco: parseFloat($("preco").value), urlCompra: $("url").value.trim(), imagem, publicado: $("pub").value === "1" };
+}
+function preview() { const d = dados(); $("prev").replaceChildren(productCard({ ...d, preco: isNaN(d.preco) ? 0 : d.preco, nome: d.nome || "Nome do produto", descricao: d.descricao || "A descrição aparece aqui." })); }
+$("form").addEventListener("input", preview);
+
+/* ---------- imagem / ImgBB ---------- */
+function setImg(url) {
+  imagem = url;
+  const box = $("iprev");
+  if (url) { const i = h("img", { src: url, alt: "Prévia da capa" }); i.onerror = () => box.textContent = "Não foi possível exibir a imagem."; box.replaceChildren(i); }
+  else box.textContent = "Nenhuma imagem selecionada";
+  $("pick").textContent = url ? "Trocar imagem" : "Escolher imagem"; show("rm", !!url); preview();
+}
+$("pick").addEventListener("click", () => $("file").click());
+$("rm").addEventListener("click", () => { setImg(""); $("itxt").textContent = ""; });
+$("file").addEventListener("change", async (e) => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  if (!/^image\/(png|jpe?g|webp|gif)$/.test(f.type)) return toast("Use uma imagem PNG, JPG, WEBP ou GIF.", "er");
+  if (f.size > MAX_MB * 1048576) return toast(`A imagem deve ter até ${MAX_MB} MB.`, "er");
+  if (!imgbbApiKey || imgbbApiKey.startsWith("COLE_")) return toast("Configure a chave do ImgBB em config.js.", "er");
+  const antes = imagem, local = URL.createObjectURL(f);
+  setImg(local); enviando = true; $("salvar").disabled = true; show("ibar"); prog(0); $("itxt").textContent = "Enviando imagem…";
+  try { setImg(await upload(f)); $("itxt").textContent = "Imagem enviada."; toast("Imagem enviada."); }
+  catch (er) { setImg(antes); $("itxt").textContent = ""; toast(er.message, "er"); }
+  finally { enviando = false; $("salvar").disabled = false; show("ibar", false); URL.revokeObjectURL(local); }
+});
+const prog = (n) => { $("ifill").style.width = n + "%"; if (n) $("itxt").textContent = `Enviando… ${Math.round(n)}%`; };
+function upload(file) {
+  return new Promise((ok, no) => {
+    const fd = new FormData(); fd.append("image", file);
+    const x = new XMLHttpRequest();
+    x.open("POST", "https://api.imgbb.com/1/upload?key=" + encodeURIComponent(imgbbApiKey));
+    x.upload.onprogress = (e) => e.lengthComputable && prog((e.loaded / e.total) * 100);
+    x.onload = () => {
+      try {
+        const j = JSON.parse(x.responseText);
+        j.success && j.data?.url ? ok(j.data.url) : no(new Error(j.error?.message || "O ImgBB recusou o envio."));
+      } catch { no(new Error("Resposta inválida do ImgBB.")); }
+    };
+    x.onerror = () => no(new Error("Sem conexão com o ImgBB."));
+    x.ontimeout = () => no(new Error("O envio demorou demais."));
+    x.timeout = 120000; x.send(fd);
+  });
+}
+
+/* ---------- salvar ---------- */
+function validar(d) {
+  if (d.nome.length < 2) return "Informe o nome do produto (mínimo 2 caracteres).";
+  if (!d.descricao) return "Escreva uma descrição.";
+  if (!CATEGORIAS.includes(d.categoria)) return "Escolha uma categoria.";
+  if (isNaN(d.preco) || d.preco < 0) return "Informe um preço válido (0 ou mais).";
+  if (!/^https?:\/\//i.test(d.urlCompra) || !safeUrl(d.urlCompra)) return "O link de compra precisa começar com https://.";
+  if (d.publicado && !d.imagem) return "Adicione uma imagem de capa antes de publicar.";
+  return "";
+}
+$("form").addEventListener("submit", async (e) => {
+  e.preventDefault(); if (enviando) return;
+  const d = dados(), m = validar(d); erro("ferr", m);
+  if (m) return window.scrollTo({ top: 0, behavior: "smooth" });
+  d.preco = Math.round(d.preco * 100) / 100;
+  $("salvar").disabled = true; $("salvar").textContent = "Salvando…";
+  try {
+    if (editId) await updateDoc(doc(db, "produtos", editId), { ...d, atualizadoEm: serverTimestamp() });
+    else await addDoc(collection(db, "produtos"), { ...d, criadoEm: serverTimestamp(), atualizadoEm: serverTimestamp() });
+    toast("Produto salvo. A vitrine foi atualizada."); irLista();
+  } catch (er) {
+    console.error(er);
+    erro("ferr", er.code === "permission-denied" ? "Sem permissão para salvar. Confira seu cadastro de administrador e as regras do Firestore." : "Não foi possível salvar. Verifique a conexão e tente de novo.");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  $("salvar").disabled = false; $("salvar").textContent = "Salvar produto";
+});
+
+/* ---------- excluir ---------- */
+let alvo = null;
+function excluir(p) { alvo = p; $("dtxt").textContent = `“${p.nome}” será removido da vitrine e do painel. Esta ação não pode ser desfeita.`; $("dlg").showModal(); }
+$("dno").addEventListener("click", () => $("dlg").close());
+$("dok").addEventListener("click", async () => {
+  $("dok").disabled = true;
+  try { await deleteDoc(doc(db, "produtos", alvo.id)); toast("Produto excluído."); }
+  catch (er) { console.error(er); toast("Não foi possível excluir o produto.", "er"); }
+  $("dok").disabled = false; $("dlg").close();
+});
+</script>
+</body>
+</html>
