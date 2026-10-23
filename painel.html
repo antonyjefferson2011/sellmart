@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Painel — Sellmart</title>
-<link rel="icon" type="image/png" href="favicon.png">
-<link rel="apple-touch-icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
@@ -89,7 +87,7 @@ dialog p{margin:8px 0 20px;color:var(--mut)}
   <main class="wrap">
     <!-- LISTA -->
     <section id="vlista">
-      <div class="head"><h2>Produtos</h2><button class="btn" id="novo">Novo produto</button></div>
+      <div class="head"><h2>Produtos</h2><div class="actions"><button class="btn ghost" id="imp">Importar vários</button><button class="btn" id="novo">Novo produto</button></div></div>
       <div class="tools">
         <input id="fq" type="search" placeholder="Buscar por nome ou descrição" aria-label="Buscar">
         <select id="fc" aria-label="Categoria"></select>
@@ -147,6 +145,13 @@ dialog p{margin:8px 0 20px;color:var(--mut)}
   <p id="dtxt"></p>
   <div class="actions"><button class="btn danger" id="dok">Excluir</button><button class="btn ghost" id="dno">Cancelar</button></div>
 </dialog>
+<dialog id="dimp" style="width:min(620px,calc(100% - 32px))">
+  <h3>Importar vários produtos</h3>
+  <p>Cole uma lista JSON. Campos aceitos: <b>name</b>/<b>nome</b>, <b>category</b>/<b>categoria</b>, <b>price</b>/<b>preco</b>, <b>url</b>, e opcionais <b>description</b> e <b>image</b>. Tudo entra como <b>rascunho</b>; você completa a capa e publica depois.</p>
+  <div id="jerr" class="msg hidden" role="alert" style="white-space:pre-line"></div>
+  <textarea id="jtxt" style="min-height:220px;font-family:ui-monospace,Consolas,monospace;font-size:13px" placeholder='[{"name":"Meu curso","category":"Culinária","price":"R$ 19,90","url":"https://..."}]'></textarea>
+  <div class="actions" style="margin-top:16px"><button class="btn" id="jok">Importar como rascunhos</button><button class="btn ghost" id="jno">Cancelar</button></div>
+</dialog>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
@@ -183,7 +188,7 @@ const [{ initializeApp }, A, F] = await Promise.all([
   import(V + "firebase-app.js"), import(V + "firebase-auth.js"), import(V + "firebase-firestore.js"),
 ]);
 const { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } = A;
-const { getFirestore, collection, doc, getDoc, addDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, query } = F;
+const { getFirestore, collection, doc, getDoc, addDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, query, writeBatch } = F;
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app), db = getFirestore(app);
 
@@ -347,6 +352,53 @@ $("dok").addEventListener("click", async () => {
   try { await deleteDoc(doc(db, "produtos", alvo.id)); toast("Produto excluído."); }
   catch (er) { console.error(er); toast("Não foi possível excluir o produto.", "er"); }
   $("dok").disabled = false; $("dlg").close();
+});
+
+/* ---------- importar vários (JSON) ---------- */
+const pega = (o, ...ks) => { for (const k of ks) if (o[k] != null && o[k] !== "") return o[k]; return ""; };
+const lePreco = (v) => {
+  if (typeof v === "number") return v;
+  const s = String(v).replace(/[^\d,.-]/g, "");
+  return parseFloat(s.includes(",") ? s.replace(/\./g, "").replace(",", ".") : s);
+};
+$("imp").addEventListener("click", () => { $("jtxt").value = ""; erro("jerr"); $("dimp").showModal(); });
+$("jno").addEventListener("click", () => $("dimp").close());
+$("jok").addEventListener("click", async () => {
+  erro("jerr");
+  let arr;
+  try { arr = JSON.parse($("jtxt").value); }
+  catch { return erro("jerr", "O texto não é um JSON válido. Cole a lista completa, de [ até ]."); }
+  if (!Array.isArray(arr) || !arr.length) return erro("jerr", "Cole uma lista com pelo menos um produto.");
+  if (arr.length > 400) return erro("jerr", "Importe no máximo 400 produtos por vez.");
+  const itens = [], erros = [];
+  arr.forEach((o, i) => {
+    o = o && typeof o === "object" ? o : {};
+    const d = {
+      nome: String(pega(o, "nome", "name")).trim(),
+      descricao: String(pega(o, "descricao", "description")).trim() || "Descrição em breve.",
+      categoria: String(pega(o, "categoria", "category")).trim(),
+      preco: lePreco(pega(o, "preco", "price")),
+      urlCompra: String(pega(o, "urlCompra", "url")).trim(),
+      imagem: String(pega(o, "imagem", "image")).trim(),
+      publicado: false,
+    };
+    if (!isNaN(d.preco)) d.preco = Math.round(d.preco * 100) / 100;
+    let m = validar(d);
+    if (!m && d.imagem && !/^https?:\/\//i.test(d.imagem)) m = "A imagem precisa ser um link https://.";
+    m ? erros.push(`Item ${i + 1} (${d.nome || "sem nome"}): ${m}`) : itens.push(d);
+  });
+  if (erros.length) return erro("jerr", "Corrija e tente de novo. Nada foi salvo.\n" + erros.join("\n"));
+  $("jok").disabled = true; $("jok").textContent = "Importando…";
+  try {
+    const b = writeBatch(db); // tudo ou nada
+    itens.forEach((d) => b.set(doc(collection(db, "produtos")), { ...d, criadoEm: serverTimestamp(), atualizadoEm: serverTimestamp() }));
+    await b.commit();
+    $("dimp").close(); toast(`${itens.length} produtos importados como rascunho.`);
+  } catch (er) {
+    console.error(er);
+    erro("jerr", er.code === "permission-denied" ? "Sem permissão. Confira seu cadastro de administrador e as regras do Firestore." : "Não foi possível importar. Nada foi salvo; tente de novo.");
+  }
+  $("jok").disabled = false; $("jok").textContent = "Importar como rascunhos";
 });
 </script>
 </body>
