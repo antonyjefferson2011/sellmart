@@ -147,10 +147,10 @@ dialog p{margin:8px 0 20px;color:var(--mut)}
 </dialog>
 <dialog id="dimp" style="width:min(620px,calc(100% - 32px))">
   <h3>Importar vários produtos</h3>
-  <p>Cole uma lista JSON. Campos aceitos: <b>name</b>/<b>nome</b>, <b>category</b>/<b>categoria</b>, <b>price</b>/<b>preco</b>, <b>url</b>, e opcionais <b>description</b> e <b>image</b>. Tudo entra como <b>rascunho</b>; você completa a capa e publica depois.</p>
+  <p>Cole uma lista JSON. Campos aceitos: <b>name</b>/<b>nome</b>, <b>category</b>/<b>categoria</b>, <b>price</b>/<b>preco</b>, <b>url</b>, e opcionais <b>description</b>, <b>image</b> (link https) e <b>published</b>. Com <b>"published": true</b> o produto já vai para a vitrine (exige <b>image</b>); sem isso, entra como <b>rascunho</b>.</p>
   <div id="jerr" class="msg hidden" role="alert" style="white-space:pre-line"></div>
   <textarea id="jtxt" style="min-height:220px;font-family:ui-monospace,Consolas,monospace;font-size:13px" placeholder='[{"name":"Meu curso","category":"Culinária","price":"R$ 19,90","url":"https://..."}]'></textarea>
-  <div class="actions" style="margin-top:16px"><button class="btn" id="jok">Importar como rascunhos</button><button class="btn ghost" id="jno">Cancelar</button></div>
+  <div class="actions" style="margin-top:16px"><button class="btn" id="jok">Importar produtos</button><button class="btn ghost" id="jno">Cancelar</button></div>
 </dialog>
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -380,7 +380,7 @@ $("jok").addEventListener("click", async () => {
       preco: lePreco(pega(o, "preco", "price")),
       urlCompra: String(pega(o, "urlCompra", "url")).trim(),
       imagem: String(pega(o, "imagem", "image")).trim(),
-      publicado: false,
+      publicado: ["true", "1", "sim", "publicado"].includes(String(pega(o, "publicado", "published")).toLowerCase()),
     };
     if (!isNaN(d.preco)) d.preco = Math.round(d.preco * 100) / 100;
     let m = validar(d);
@@ -393,12 +393,12 @@ $("jok").addEventListener("click", async () => {
     const b = writeBatch(db); // tudo ou nada
     itens.forEach((d) => b.set(doc(collection(db, "produtos")), { ...d, criadoEm: serverTimestamp(), atualizadoEm: serverTimestamp() }));
     await b.commit();
-    $("dimp").close(); toast(`${itens.length} produtos importados como rascunho.`);
+    $("dimp").close(); toast(`${itens.length} produtos importados (${itens.filter((d) => d.publicado).length} publicados).`);
   } catch (er) {
     console.error(er);
     erro("jerr", er.code === "permission-denied" ? "Sem permissão. Confira seu cadastro de administrador e as regras do Firestore." : "Não foi possível importar. Nada foi salvo; tente de novo.");
   }
-  $("jok").disabled = false; $("jok").textContent = "Importar como rascunhos";
+  $("jok").disabled = false; $("jok").textContent = "Importar produtos";
 });
 </script>
 </body>
